@@ -69,8 +69,9 @@ Quantities = {
     distance: new Quantity({
         name:       'distance',
         units:      {
-            metre:          new Unit({name: 'metre',                    displayName: 'm',           suffix: undefined,  convert: undefined,                     places: 0}),
-            millimetre:     new Unit({name: 'millimetre',               displayName: 'mm',          suffix: undefined,  convert: Numbers.multiply(1000),        places: 0}),
+            micrometre:     new Unit({name: 'micrometre',               displayName: 'μm',          suffix: undefined,  convert: undefined,                 places: 0}),
+            millimetre:     new Unit({name: 'millimetre',               displayName: 'mm',          suffix: undefined,  convert: Numbers.multiply(0.001),    places: -1}),
+            metre:          new Unit({name: 'metre',                    displayName: 'm',           suffix: undefined,  convert: Numbers.multiply(0.001*0.001),   places: -4}),
         }
     }),
     

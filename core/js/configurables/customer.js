@@ -10,12 +10,12 @@ function Customer() {
     this.defaultPassword = 'passwd';
     this.email = null;
     this.apiKey = null;
-    /** REFACTOR to different constructor 
+    /** REFACTOR to different constructor  **/
     this.forms = {
         'SettingsFormUnits': SettingsFormUnits,
         'SettingsFormGraphics': SettingsFormGraphics,
-    };*/
-    this.forms = {};
+    };
+    //this.forms = {};
     this.timezones = null;
 
     // if null that user isn't logged, otherwise logged in
@@ -68,6 +68,8 @@ Customer.prototype.isDefaultEmail = function() {
 
 // this is same in device.js for DEVICE SETTINGS, refactor!
 Customer.prototype.showModal = function(defaultForm) {
+    window.scrollTo(0, 0);
+    
     //TODO: sensor_modal.html can be loaded dynamically (if not yet present!, cache it)
     // we must tell bootstrap how big is the modal div
     // (when empty, it will not show up)
@@ -113,6 +115,24 @@ Customer.prototype.getUnitId = function(type) {
 // Customer should not have its own settings so it's only in container and easily extendable
 Customer.prototype.getSettings = function() {
     return this.container.settings;
+};
+
+Customer.prototype.getUnitAndValidateSettings = function(measure) {
+    var units = this.getSettings().units;
+    var currentUnit = units[measure.name];
+    for (var i in measure.quantity.units) {
+        var unit = measure.quantity.units[i];
+        if (i == currentUnit) return unit;
+    }
+    
+    // not found so do iteration and always exit with first option
+    for (var i in measure.quantity.units) {
+        var unit = measure.quantity.units[i];
+        units[measure.name] = i;
+        return unit;
+    }
+    
+    return null;
 };
 
 Customer.prototype.getTimezoneOffset = function() {

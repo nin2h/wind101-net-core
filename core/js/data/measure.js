@@ -24,7 +24,7 @@ var measureList = [
 
     new Measure({id: 'h_r',         name: 'relativeHumidity',               verboseName: 'relative humidity',                   quantity: Quantities.number}),
 
-    new Measure({id: 'r',           name: 'rainfall',                       verboseName: 'rainfall',                            quantity: Quantities.speed}),
+    new Measure({id: 'r',           name: 'rainfall',                       verboseName: 'rainfall',                            quantity: Quantities.distance}),
 
     //new Measure({id: 'd_air',       name: 'airDensity',                     verboseName: 'sea level pressure',                  quantity: Quantities.density}),
     new Measure({id: 'cc',          name: 'cloudCover',                     verboseName: 'cloud cover',                         quantity: Quantities.number,         hidden: true}),

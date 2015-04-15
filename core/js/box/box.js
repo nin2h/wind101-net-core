@@ -123,18 +123,21 @@ Box.prototype.createWidget = function() {
 }
 
 Box.prototype.createSettingsDropdown = function() {
-    jQuery.get('assets/html/box-options.html').success(jQuery.proxy(function(data) {
-        this.$obj.find('div.dropdown').html(data);
-        var $removeButton =  this.$obj.find('button.wind101-remove');
-        $removeButton.click(jQuery.proxy(function() {
-            for (var b in customer.container.dashboards[customer.container.activeDashboard].boxes) {
-                var box = customer.container.dashboards[customer.container.activeDashboard].boxes[b];
-                if (box === this) {
-                    customer.container.dashboards[customer.container.activeDashboard].boxes.splice(b, 1);
-                    customer.saveSettings(true);
-                    return;
-                }
-            }
+    jQuery.ajax({
+        url: 'assets/html/box-options.html',
+        dataType: 'html'
+    }).done(jQuery.proxy(function(data) {
+                        this.$obj.find('div.dropdown').html(data);
+                        var $removeButton =  this.$obj.find('button.wind101-remove');
+                        $removeButton.click(jQuery.proxy(function() {
+                            for (var b in customer.container.dashboards[customer.container.activeDashboard].boxes) {
+                                var box = customer.container.dashboards[customer.container.activeDashboard].boxes[b];
+                                if (box === this) {
+                                    customer.container.dashboards[customer.container.activeDashboard].boxes.splice(b, 1);
+                                    customer.saveSettings(true);
+                                    return;
+                                }
+                            }
         }, this));
 
         this.$obj.find('div.dropdown').after($removeButton);

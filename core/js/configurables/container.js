@@ -291,8 +291,8 @@ Container.prototype.onDeviceList = function(deviceItems) {
 //        this.activeDevice = this.getPreferredSerialNumber();
 //        window.location.hash = 'device/' + this.activeDevice;
 
-        this.activeController = 'grants';
-        window.location.hash = 'grants';
+        this.activeController = 'map';
+        window.location.hash = 'map';
     }
 
     // get container settings
@@ -1115,6 +1115,16 @@ Container.prototype.getSensorNameById = function(id){
     }
 };
 
+Container.prototype.hasSensorName = function(id, sensorNames) {
+    for(var s in sensorNames){
+        if(this.sensors[id].name === sensorNames[s]) {
+            return true;
+        }
+    }
+    
+    return false;
+};
+
 Container.prototype.getActiveDeviceCount = function() {
     var count = 0;
     var ts = new Date().getTime() - 30000;
@@ -1329,16 +1339,17 @@ Container.prototype.showMapHistoricalData = function(deviceId, infowindow) {
         // DATA TIME
         // TO DO: stop timer on infowindow close
         setInterval(function() {
-            if(dataTimestamp){ 
-                var seconds = new Date().getTime() - dataTimestamp;
+            if(dataTimestamp){
+                var ms = Date.now() - dataTimestamp;
+                console.log(Date.now() + ' - ' + dataTimestamp + ' = ' + ms);
                 var timestr;
-                if (seconds < 1000)
-                    timestr = seconds + " ms ago";
-                else if (seconds < 60 * 1000)
-                    timestr = Math.floor(seconds / 100) + " sec ago";
+                if (ms < 1000)
+                    timestr = ms + " ms ago";
+                else if (ms < 60000)
+                    timestr = Math.floor(ms / 1000) + " sec ago";
                 else
-                    timestr = Math.floor(seconds / 60 / 1000) + " min ago";
-                jQuery(infowindow.div_).find('.name-devices > div').eq(0).html('- ' + timestr);
+                    timestr = Math.floor(ms / 60000) + " min ago";
+                jQuery(infowindow.div_).find('.name-devices > div').eq(0).html(': ' + timestr);
             }
         }, 900);
     }, this);

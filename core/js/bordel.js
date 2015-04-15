@@ -10,7 +10,7 @@ var Units = {
     relativeHumidity: 'percent',
     ambientPressure: 'pascal',
     ambientTemperature: 'celsius',
-    rainfall: 'umps',
+    rainfall: 'mm',
     log: 'count',
 };
 
