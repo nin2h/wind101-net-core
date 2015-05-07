@@ -8,6 +8,7 @@ var SocketHandler = function(url) {
     // sensors via ws
     this.sensorReadStart = null;
     this.sensorsToRead = 0;
+    this.size = 0;
 }
 
 /**
@@ -224,6 +225,7 @@ SocketHandler.prototype.onmessage = function(evt) {
      */
     if (jsonData.c === 23 && jsonData.ic === 30) {
         customer.container.addSensors(jsonData);
+        customer.getSocket().size += evt.data.length;
         return;
     }
     
@@ -231,12 +233,14 @@ SocketHandler.prototype.onmessage = function(evt) {
      * getDataArray
      */
     if (jsonData.c === 23 && jsonData.ic === 17 && customer.container.feeder) {
+        this.size += evt.data.length;
         for (var i in jsonData.ai) {
             customer.container.feeder.addData(jsonData.ai[i]);
         }
         
         customer.socket.sensorsToRead--;
         if (customer.socket.sensorsToRead <= 0) {
+            console.log('Total received data size: ' + customer.getSocket().size);
             customer.container.onAllData();
         }
         return;

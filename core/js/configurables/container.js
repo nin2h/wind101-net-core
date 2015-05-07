@@ -365,6 +365,8 @@ Container.prototype.onAllSensors = function() {
     var diff = Date.now() - this.sensorReadStart;
     console.log('Read ' + this.deviceList.length + ' devices in ' + diff + 'ms (' +  (this.deviceList.length/diff*1000) + ' received messages per sec)');
     
+    this.sensorsToRead = 0;
+    
     var boxes = [];
     for (var i in this.deviceList) {
         var s = this.deviceList[i].s;
@@ -372,6 +374,7 @@ Container.prototype.onAllSensors = function() {
         for (var j in this.sensors) {
             if(this.sensors[j].deviceId === s) {
                 sensors[this.sensors[j].id] = s;
+                this.sensorsToRead++;
             }
         }
         var box = new Box({sensors: sensors});
@@ -382,7 +385,7 @@ Container.prototype.onAllSensors = function() {
     this.feeder = new Feeder(boxes, 0, Date.now());
     
     customer.socket.sensorReadStart = Date.now();
-    customer.socket.sensorsToRead = boxes.length*2;
+    customer.socket.sensorsToRead = this.sensorsToRead;
     
     for (var j in this.sensors) {
         customer.socket.getData(0, this.sensors[j].id, 0, Date.now(), 'AVG');
@@ -391,7 +394,7 @@ Container.prototype.onAllSensors = function() {
 
 Container.prototype.onAllData = function() {
     var diff = Date.now() - customer.socket.sensorReadStart;
-    console.log('Read ' + this.deviceList.length*2 + ' sensor data in ' + diff + 'ms (' +  (this.deviceList.length/diff*1000*2) + ' received messages per sec)');
+    console.log('Read ' + this.sensorsToRead + ' sensor data in ' + diff + 'ms (' +  (this.sensorsToRead/diff*1000) + ' received messages per sec)');
     
     var out='';
     for (var i in this.feeder.boxes) {
@@ -406,7 +409,310 @@ Container.prototype.onAllData = function() {
                     + ' sum: ' + aggregator.sums[j] + 'EUR<br/>';
         }
     }
-    this.$obj.html(out);
+    //this.$obj.html(out);
+    
+    var mapdatag = [];
+    var mapdatar = [];
+    var mapdatas = [];
+    var printdata = {};
+    
+    for (var i in this.feeder.boxes) {
+        var aggregator = this.feeder.boxes[i].aggregator;
+        var sensorGrantAmount = null;
+        var sensorGrantTitle = null;
+        var sensorResidency = null;
+        var sensorScholarship = null;
+        for (var j in aggregator.sensors) {
+            switch (aggregator.sensors[j].name) {
+                case 'TITLE':
+                    sensorGrantTitle = j;
+                    break;
+                case 'AMOUNT':
+                    sensorGrantAmount = j;
+                    break;
+                case 'NAME':
+                    sensorResidency = j;
+                    break;
+                default:
+                    sensorScholarship = j;
+            }
+        }
+        
+        var datag = {};
+        var datar = {};
+        var datas = {};
+        
+        // find data
+        for (var j in aggregator.data) {
+            var m = moment.unix(j);
+            var year = m.format('YYYY');
+            //console.log(year);
+            
+            if (typeof sensorGrantTitle !== 'undefined' && typeof aggregator.data[j].fields[sensorGrantTitle] !== 'undefined') {
+                if (typeof datag[year] === 'undefined') {
+                    datag[year] = [];
+                }
+                var desc = JSON.parse(aggregator.data[j].fields[sensorGrantTitle]);
+                datag[year].push({i: desc.i, a: desc.a, name: desc.t, amount: aggregator.data[j].fields[sensorGrantAmount],c: desc.c, g: Math.floor(1+Math.random()*7)});
+            }
+            
+            if (typeof sensorResidency !== 'undefined' && typeof aggregator.data[j].fields[sensorResidency] !== 'undefined') {
+                if (typeof datar[year] === 'undefined') {
+                    datar[year] = [];
+                }
+                var desc = JSON.parse(aggregator.data[j].fields[sensorResidency]);
+                datar[year].push({i: desc.co, a: desc.a, name: desc.h, amount: 1, c: desc.c, g: Math.floor(1+Math.random()*7)});
+            }
+            
+            if (typeof sensorScholarship !== 'undefined' && typeof aggregator.data[j].fields[sensorScholarship] !== 'undefined') {
+                if (typeof datas[year] === 'undefined') {
+                    datas[year] = [];
+                }
+                var desc = JSON.parse(aggregator.data[j].fields[sensorScholarship]);
+                var z = '';
+                for (var k in desc) {
+                    for (var l in desc[k]) {
+                        z += ' ' + l + ':' + desc[k][l];
+                    }
+                }
+                datas[year].push({i: z, a: z, name: z, amount: 1, c: [1], g: Math.floor(1+Math.random()*7)});
+            }
+           
+        }
+        
+        // find lon/lat
+//        for (var j in customer.container.deviceList) {
+//            var device = customer.container.deviceList[j];
+//            if (device.s === item.s) {
+//                item.lon = device.lon;
+//                item.lat = device.lat;
+//                item.c = device.dlocation;
+//                break;
+//            }
+//        }
+        
+        //jQuery.isEmptyObject(datag);
+        
+        var item = {};
+        
+        if (typeof sensorGrantTitle !== 'undefined' && typeof aggregator.sensors[sensorGrantTitle] !== 'undefined') {
+            var device = this.getDevice(aggregator.sensors[sensorGrantAmount].deviceId);
+            item = {
+                data: datag,
+                s: device.s,
+                lon: device.lon,
+                lat: device.lat,
+                c: device.dlocation
+            };
+            mapdatag.push(item);
+        }
+        
+        if (typeof sensorResidency !== 'undefined' && typeof aggregator.sensors[sensorResidency] !== 'undefined') {
+            var device = this.getDevice(aggregator.sensors[sensorResidency].deviceId);
+            item = {
+                data: datar,
+                s: device.s,
+                lon: device.lon,
+                lat: device.lat,
+                c: device.dlocation
+            };
+            mapdatar.push(item);
+        }
+        
+        if (typeof sensorScholarship !== 'undefined' && typeof aggregator.sensors[sensorScholarship] !== 'undefined') {
+            var device = this.getDevice(aggregator.sensors[sensorScholarship].deviceId);
+            item = {
+                data: datas,
+                s: device.s,
+                lon: device.lon,
+                lat: device.lat,
+                c: device.dlocation
+            };
+            mapdatas.push(item);
+        }
+        
+
+        
+        
+        
+        /* print data *
+        
+        var data = item.data;
+        
+        for (var year in data) {
+            if (typeof printdata[year] === 'undefined') {
+                printdata[year] = {};
+            }
+            
+            for (var idx in data[year]) {
+                for (c in data[year][idx].c) {
+                    var t = data[year][idx].c[c];
+                    if (typeof printdata[year][t] === 'undefined') {
+                        printdata[year][t] = 0;
+                    }
+
+                    printdata[year][t]++;
+                }
+            }
+        }
+        
+        var str = 'year,';
+        
+        for (var t=1; t<=19; t++) {
+            str += t + ',';
+        }
+        
+        str += '<br>';
+        
+        for (var year in printdata) {
+            str += year + ',';
+            for (var t=1; t<=19; t++) {
+                str += (typeof printdata[year][t] === 'undefined') ? '' : printdata[year][t];
+                str += ',';
+            }
+            
+            str += '<br>';
+        }
+        
+        /* print data END */
+        
+        
+        //this.$obj.html(JSON.stringify(item));
+        //break;
+        
+        
+    }
+    
+    //this.$obj.html(str);
+    //return;
+    
+  var mapdata = [mapdatag,mapdatas,mapdatar];
+  
+    var filters = [{
+        g: {
+            1: 'Extended Standard Grants',
+            2: 'Flagship Projects',
+            3: 'Small Grants',
+            4: 'Standard Grants',
+            5: 'Strategic Grants',
+            7: 'Visegrad+',
+            6: 'University Studies Grants'},
+        c: {
+            1: 'Architecture and urban development',
+            2: 'Common identity',
+            3: 'Cross-border cooperation',
+            4: 'Culture and arts',
+            5: 'Demographic change and migration',
+            6: 'Education, training and capacity building',
+            7: 'Environment and climate change',
+            8: 'Institutional networking and partnerships',
+            9: 'Media, journalism, ICT',
+            10: 'Public policy',
+            11: 'Science and research',
+            12: 'SMEs and entrepreneurship',
+            13: 'Social inclusion and equal opportunities',
+            14: 'Sports',
+            15: 'Tourism',
+            16: 'Transparency and fight against corruption',
+            17: 'Youth exchanges',
+            18: 'COURSE',
+            19: 'DEGREE PROGRAM'}
+    },
+    
+    {
+        g: { 1: 'CZ',
+            2: 'PL',
+            3: 'HU',
+            4: 'SK',
+            5: 'Strategic Grants',
+            7: 'Visegrad+',
+            6: 'University Studies Grants'},
+        c: {1: 'Architecture and urban development',
+            2: 'Common identity',
+            3: 'Cross-border cooperation',
+            4: 'Culture and arts',
+            5: 'Demographic change and migration',
+            6: 'Education, training and capacity building',
+            7: 'Environment and climate change',
+            8: 'Institutional networking and partnerships',
+            9: 'Media, journalism, ICT',
+            10: 'Public policy',
+            11: 'Science and research',
+            12: 'SMEs and entrepreneurship',
+            13: 'Social inclusion and equal opportunities',
+            14: 'Sports',
+            15: 'Tourism',
+            16: 'Transparency and fight against corruption',
+            17: 'Youth exchanges',
+            18: 'COURSE',
+            19: 'DEGREE PROGRAM'}
+    },
+    
+    {
+        g: { 1: 'CZ',
+            2: 'PL',
+            3: 'HU',
+            4: 'SK',
+            5: 'Strategic Grants',
+            7: 'Visegrad+',
+            6: 'University Studies Grants'},
+    
+        c: {
+            1: 'visual & sound arts',
+            2: 'literary',
+            3: 'performing arts',
+            4: 'Culture and arts',
+            5: 'Demographic change and migration',
+            6: 'Education, training and capacity building',
+            7: 'Environment and climate change',
+            8: 'Institutional networking and partnerships',
+            9: 'Media, journalism, ICT',
+            10: 'Public policy',
+            11: 'Science and research',
+            12: 'SMEs and entrepreneurship',
+            13: 'Social inclusion and equal opportunities',
+            14: 'Sports',
+            15: 'Tourism',
+            16: 'Transparency and fight against corruption',
+            17: 'Youth exchanges',
+            18: 'COURSE',
+            19: 'DEGREE PROGRAM'
+        }
+    }
+];
+    
+  
+  var textFile = null,
+  makeTextFile = function (text) {
+    var data = new Blob([text], {type: 'text/plain'});
+
+    // If we are replacing a previously generated file we need to
+    // manually revoke the object URL to avoid memory leaks.
+    if (textFile !== null) {
+      window.URL.revokeObjectURL(textFile);
+    }
+
+    textFile = window.URL.createObjectURL(data);
+
+    return textFile;
+  };
+
+
+  var create = document.getElementById('create');
+
+  create.addEventListener('click', function () {
+    var link = document.getElementById('downloadlink');
+    link.href = makeTextFile('var filters='+JSON.stringify(filters)+';\n\
+var mapdata='+JSON.stringify(mapdata));
+    link.style.display = 'block';
+  }, false);
+
+    
+    //this.$obj.html(JSON.stringify(mapdata));
+
+    
+    
+    
     
     throw 'Grants to be implemented here';
 };
