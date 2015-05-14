@@ -11,11 +11,11 @@ function Customer() {
     this.email = null;
     this.apiKey = null;
     /** REFACTOR to different constructor  **/
-    this.forms = {
-        'SettingsFormUnits': SettingsFormUnits,
-        'SettingsFormGraphics': SettingsFormGraphics,
-    };
-    //this.forms = {};
+//    this.forms = {
+//        'SettingsFormUnits': SettingsFormUnits,
+//        'SettingsFormGraphics': SettingsFormGraphics,
+//    };
+    this.forms = {};
     this.timezones = null;
 
     // if null that user isn't logged, otherwise logged in
@@ -120,12 +120,12 @@ Customer.prototype.getSettings = function() {
 Customer.prototype.getUnitAndValidateSettings = function(measure) {
     var units = this.getSettings().units;
     var currentUnit = units[measure.name];
-    for (var i in measure.quantity.units) {
-        var unit = measure.quantity.units[i];
-        if (i == currentUnit) return unit;
+    if (typeof measure.quantity.units[currentUnit] !== 'undefined') {
+        return measure.quantity.units[currentUnit];
     }
     
     // not found so do iteration and always exit with first option
+    console.warn(currentUnit + ' not found');
     for (var i in measure.quantity.units) {
         var unit = measure.quantity.units[i];
         units[measure.name] = i;

@@ -370,16 +370,28 @@ Container.prototype.onAllSensors = function() {
     var boxes = [];
     for (var i in this.deviceList) {
         var s = this.deviceList[i].s;
-        var sensors = {};
+        var sensors = [];
+        var foundSensors = 0;
         for (var j in this.sensors) {
             if(this.sensors[j].deviceId === s) {
-                sensors[this.sensors[j].id] = s;
-                this.sensorsToRead++;
+                // grant printdata only
+                if(true || this.sensors[j].name === 'AMOUNT' || this.sensors[j].name === 'TITLE') {
+                    sensors[this.sensors[j].id] = s;
+                    foundSensors++;
+                    this.sensorsToRead++;
+                }
+                
+//                if(this.sensors[j].name !== 'AMOUNT' && this.sensors[j].name !== 'TITLE') {
+//                    console.log('BOX LEN ' + boxes.length);
+//                }
             }
         }
-        var box = new Box({sensors: sensors});
-        box.extendSoftSettings({});
-        boxes.push(box);
+        
+        if (true || foundSensors >= 2) {
+            var box = new Box({sensors: sensors});
+            box.extendSoftSettings({});
+            boxes.push(box);
+        }
     }
     
     this.feeder = new Feeder(boxes, 0, Date.now());
@@ -388,7 +400,8 @@ Container.prototype.onAllSensors = function() {
     customer.socket.sensorsToRead = this.sensorsToRead;
     
     for (var j in this.sensors) {
-        customer.socket.getData(0, this.sensors[j].id, 0, Date.now(), 'AVG');
+        if(true || this.sensors[j].name === 'AMOUNT' || this.sensors[j].name === 'TITLE')
+            customer.socket.getData(0, this.sensors[j].id, 0, Date.now(), 'AVG');
     }
 };
 
@@ -461,7 +474,7 @@ Container.prototype.onAllData = function() {
                     datar[year] = [];
                 }
                 var desc = JSON.parse(aggregator.data[j].fields[sensorResidency]);
-                datar[year].push({i: desc.co, a: desc.a, name: desc.h, amount: 1, c: desc.c, g: Math.floor(1+Math.random()*7)});
+                datar[year].push({ci: desc.co, h: desc.h, c: desc.c, n: desc.n});
             }
             
             if (typeof sensorScholarship !== 'undefined' && typeof aggregator.data[j].fields[sensorScholarship] !== 'undefined') {
@@ -469,13 +482,7 @@ Container.prototype.onAllData = function() {
                     datas[year] = [];
                 }
                 var desc = JSON.parse(aggregator.data[j].fields[sensorScholarship]);
-                var z = '';
-                for (var k in desc) {
-                    for (var l in desc[k]) {
-                        z += ' ' + l + ':' + desc[k][l];
-                    }
-                }
-                datas[year].push({i: z, a: z, name: z, amount: 1, c: [1], g: Math.floor(1+Math.random()*7)});
+                datas[year].push(desc);
             }
            
         }
@@ -535,7 +542,7 @@ Container.prototype.onAllData = function() {
         
         
         
-        /* print data *
+        /* print data 
         
         var data = item.data;
         
@@ -590,93 +597,41 @@ Container.prototype.onAllData = function() {
   
     var filters = [{
         g: {
-            1: 'Extended Standard Grants',
+            1: 'Extended Standard',
             2: 'Flagship Projects',
-            3: 'Small Grants',
-            4: 'Standard Grants',
-            5: 'Strategic Grants',
-            7: 'Visegrad+',
-            6: 'University Studies Grants'},
+            3: 'Small',
+            4: 'Standard',
+            5: 'Strategic',
+            6: 'University Studies',
+            7: 'Visegrad+'},
         c: {
-            1: 'Architecture and urban development',
-            2: 'Common identity',
-            3: 'Cross-border cooperation',
-            4: 'Culture and arts',
-            5: 'Demographic change and migration',
-            6: 'Education, training and capacity building',
-            7: 'Environment and climate change',
-            8: 'Institutional networking and partnerships',
-            9: 'Media, journalism, ICT',
-            10: 'Public policy',
-            11: 'Science and research',
-            12: 'SMEs and entrepreneurship',
-            13: 'Social inclusion and equal opportunities',
-            14: 'Sports',
-            15: 'Tourism',
-            16: 'Transparency and fight against corruption',
-            17: 'Youth exchanges',
-            18: 'COURSE',
-            19: 'DEGREE PROGRAM'}
+            1: {n:'Architecture and urban development', d:'Planning, design, cities and urban areas, urban renewal'},
+            2: {n:'Common identity', d:'Regional identity building, V4 branding, strengthening ties between V4 nations, fostering dialog on V4/Central Europe'},
+            3: {n:'Cross-border cooperation', d:'Initiatives in border areas, bi-/trilateral initiatives'},
+            4: {n:'Culture and arts', d:'Projects dealing with cultural cooperation, cultural heritage, cultural infrastructures and services, and all spheres of fine arts'},
+            5: {n:'Demographic change and migration', d:'Social and spatial segregation, brain drain, aging and other demographic challenges'},
+            6: {n:'Education, training and capacity building', d:'Life-long learning, knowledge transfer, know-how facilitation'},
+            7: {n:'Environment and climate change', d:'Projects dealing with sustainability, natural risks, water, waste, air quality, biodiversity, energy, protection of natural heritage, challenges related to the climate change, etc.'},
+            8: {n:'Institutional networking and partnerships', d:'Cooperation between public institutions, regional governments, universities and other higher-education institutions, schools, town-twinning projects, etc.'},
+            9: {n:'Media, journalism, ICT', d:'Cooperation of media outlets, projects dealing with information and communication technologies and their development, digitization, projects dealing with free speech, media literacy, etc.'},
+            10: {n:'Public policy', d:'Policies of public administrations – defense policy, energy policy, foreign policy, economic policy, security, infrastructure, public health, etc.'},
+            11: {n:'Science and research', d:'Research activities, scientific development, scientific mobility and networking'},
+            12: {n:'SMEs and entrepreneurship', d:'Start-ups, business advisory services, jobs creation, clusters, business networks, market innovation'},
+            13: {n:'Social inclusion and equal opportunities', d:'Social projects dealing with disadvantaged peoples and excluded groups, namely minorities'},
+            14: {n:'Sports', d:'Sporting events, cooperation between sport institutions'},
+            15: {n:'Tourism', d:'Promotion of natural and cultural assets, tourist services and products'},
+            16: {n:'Transparency and fight against corruption',d:'Anti-corruption mechanisms, open government initiatives, watchdog initiatives'},
+            17: {n:'Youth exchanges', d:'Youth mobility, intercultural learning, contacts among schools'}
+        }
     },
     
-    {
-        g: { 1: 'CZ',
-            2: 'PL',
-            3: 'HU',
-            4: 'SK',
-            5: 'Strategic Grants',
-            7: 'Visegrad+',
-            6: 'University Studies Grants'},
-        c: {1: 'Architecture and urban development',
-            2: 'Common identity',
-            3: 'Cross-border cooperation',
-            4: 'Culture and arts',
-            5: 'Demographic change and migration',
-            6: 'Education, training and capacity building',
-            7: 'Environment and climate change',
-            8: 'Institutional networking and partnerships',
-            9: 'Media, journalism, ICT',
-            10: 'Public policy',
-            11: 'Science and research',
-            12: 'SMEs and entrepreneurship',
-            13: 'Social inclusion and equal opportunities',
-            14: 'Sports',
-            15: 'Tourism',
-            16: 'Transparency and fight against corruption',
-            17: 'Youth exchanges',
-            18: 'COURSE',
-            19: 'DEGREE PROGRAM'}
-    },
+    {},
     
     {
-        g: { 1: 'CZ',
-            2: 'PL',
-            3: 'HU',
-            4: 'SK',
-            5: 'Strategic Grants',
-            7: 'Visegrad+',
-            6: 'University Studies Grants'},
-    
         c: {
-            1: 'visual & sound arts',
-            2: 'literary',
-            3: 'performing arts',
-            4: 'Culture and arts',
-            5: 'Demographic change and migration',
-            6: 'Education, training and capacity building',
-            7: 'Environment and climate change',
-            8: 'Institutional networking and partnerships',
-            9: 'Media, journalism, ICT',
-            10: 'Public policy',
-            11: 'Science and research',
-            12: 'SMEs and entrepreneurship',
-            13: 'Social inclusion and equal opportunities',
-            14: 'Sports',
-            15: 'Tourism',
-            16: 'Transparency and fight against corruption',
-            17: 'Youth exchanges',
-            18: 'COURSE',
-            19: 'DEGREE PROGRAM'
+            1: {n:'Visual & sound arts', d:'Multimedia artists'},
+            2: {n:'Literary', d:'Literary publications'},
+            3: {n:'Performing arts', d:'Art performances'}
         }
     }
 ];
