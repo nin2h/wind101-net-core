@@ -84,4 +84,12 @@ Quantities = {
             serial:         new Unit({name: 'serial',                   displayName: '',            suffix: undefined,  convert: function(value) { return value.s; },   places: 0}),            
         }
     }),
+    
+    weight: new Quantity({
+        name:       'weight',
+        units:      {
+            milligram:      new Unit({name: 'milligram',                displayName: 'mg',          suffix: undefined,  convert: Numbers.multiply(1000), places: 0}),
+            gram:           new Unit({name: 'gram',                     displayName: 'g',           suffix: undefined,  convert: undefined,              places: -1}),
+        }
+    }),
 }

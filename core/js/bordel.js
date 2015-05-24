@@ -11,6 +11,8 @@ var Units = {
     ambientPressure: 'pascal',
     ambientTemperature: 'celsius',
     rainfall: 'millimetre',
+    weight: 'gram',
+    weightStable: 'gram',
     log: 'count',
 };
 

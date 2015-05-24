@@ -10,12 +10,12 @@ function Customer() {
     this.defaultPassword = 'passwd';
     this.email = null;
     this.apiKey = null;
+    
     /** REFACTOR to different constructor  **/
-//    this.forms = {
-//        'SettingsFormUnits': SettingsFormUnits,
-//        'SettingsFormGraphics': SettingsFormGraphics,
-//    };
-    this.forms = {};
+    this.forms = (typeof SettingsFormUnits === 'undefined') ? {} : {
+        'SettingsFormUnits': SettingsFormUnits,
+        'SettingsFormGraphics': SettingsFormGraphics
+    };
     this.timezones = null;
 
     // if null that user isn't logged, otherwise logged in
@@ -294,8 +294,8 @@ Customer.prototype.saveSettings = function(dashboardChanged, removeIndex, serial
         this.container.activeDashboard = settings.dashboards.length - 1;
     }
     
-    console.debug("[Customer] Saving soft settings:");
-    console.debug(settings);
+    //console.debug("[Customer] Saving soft settings:");
+    //console.debug(settings);
 
     var index = this.container.activeDashboard;
     if (dashboardChanged && this.container.isControllerDevice()) {
@@ -323,7 +323,7 @@ Customer.prototype.saveSettings = function(dashboardChanged, removeIndex, serial
     //this.applySettings();
     saveRequest.done = jQuery.proxy(
             function(data, textStatus, jqXHR) {
-                console.debug("[Customer] Saving settings successful");
+                //console.debug("[Customer] Saving settings successful");
                 this.notifyModalOk();
                 this.alert('Settings saved', this.alerts.success, false);
                 if (dashboardChanged) {
