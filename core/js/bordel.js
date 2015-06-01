@@ -10,6 +10,7 @@ var Units = {
     relativeHumidity: 'percent',
     ambientPressure: 'pascal',
     ambientTemperature: 'celsius',
+    dewPoint: 'celsius',
     rainfall: 'millimetre',
     weight: 'gram',
     weightStable: 'gram',

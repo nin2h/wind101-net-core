@@ -12,10 +12,10 @@ switch (location.protocol) {
 SERVER_ADDRESS = 'http://ponton:8099';
 SERVER_SOCKET_ADDRESS = 'ws://ponton:8098';
 
-console.log('SERVER_ADDRESS is ' + SERVER_ADDRESS);
-console.log('SERVER_SOCKET_ADDRESS is ' + SERVER_SOCKET_ADDRESS);
-
 jQuery(document).ready(function() {
+    console.log('SERVER_ADDRESS is ' + SERVER_ADDRESS);
+    console.log('SERVER_SOCKET_ADDRESS is ' + SERVER_SOCKET_ADDRESS);
+    
     customer = new Customer();
     customer.init();
 });

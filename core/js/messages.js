@@ -10,7 +10,7 @@ function Message() {
 
     this.request = function() {
         var postData = this.getData();
-        console.log("[Messages] Request #" + postData.c + (typeof postData.u == 'undefined' ? '' : ' u: ' + postData.u));
+        //console.log("[Messages] Request #" + postData.c + (typeof postData.u == 'undefined' ? '' : ' u: ' + postData.u));
 
         jQuery.ajax({
             type: 'post',

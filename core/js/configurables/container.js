@@ -466,7 +466,7 @@ Container.prototype.onAllData = function() {
                     datag[year] = [];
                 }
                 var desc = JSON.parse(aggregator.data[j].fields[sensorGrantTitle]);
-                datag[year].push({i: desc.i, a: desc.a, name: desc.t, amount: aggregator.data[j].fields[sensorGrantAmount],c: desc.c, g: Math.floor(1+Math.random()*7)});
+                datag[year].push({i: desc.i, a: desc.a, name: desc.t, amount: aggregator.data[j].fields[sensorGrantAmount],c: desc.c, g: desc.g});
             }
             
             if (typeof sensorResidency !== 'undefined' && typeof aggregator.data[j].fields[sensorResidency] !== 'undefined') {
@@ -840,6 +840,7 @@ Container.prototype.loadDefaults = function() {
         this.createWindroseSmokeTrailSettings(),
         //this.createWindroseVectorSettings(),
         this.createAveragesSettings(),
+        //this.createRainGaugeSettings()
     ]).filter(
         function (box) {
             return box !== null;
@@ -1115,6 +1116,33 @@ Container.prototype.createAveragesSettings = function() {
     }
 
     console.debug("[Container] Created averages settings:");
+    console.dir(averagesSettings);
+
+    return averagesSettings;
+}
+
+Container.prototype.createRainGaugeSettings = function() {
+    var averagesSettings = {
+        id:         'raingauge',
+        type:       'raingauge',
+        sensors:    {},
+        title:      'raingauge',
+        timeout:    60,
+        historical: false
+    };
+    
+    for (var i in this.sensors) {
+        if(this.sensors[i].source !== SensorSources.hw){
+            continue;
+        }
+        if (typeof this.sensors[i].measure === 'undefined') {
+        	console.log('Ignoring ' + this.sensors[i].name)
+            continue;
+        }
+        averagesSettings.sensors[i] = this.sensors[i].deviceId;
+    }
+
+    console.debug("[Container] Created raingauges settings:");
     console.dir(averagesSettings);
 
     return averagesSettings;
